@@ -153,7 +153,6 @@ async function startEventListener() {
             console.error("Lỗi khi kiểm tra sự kiện:", error.message);
             setTimeout(startEventListener, 15000);
         }
-
         // Đợi 15 giây trước khi kiểm tra sự kiện tiếp theo
         await new Promise(resolve => setTimeout(resolve, 15000));
     }

@@ -93,18 +93,18 @@ async function handleMint(recipient, amount, nonce) {
 async function startEventListener() {
     console.log("Bắt đầu lắng nghe sự kiện...");
 
-    // Theo dõi các sự kiện đã xử lý để tránh trùng lặp
-    const processedEvents = new Set();
-
+ 
     // Lấy block hiện tại
     let currentBlock = await web3Bsc.eth.getBlockNumber();
     console.log("Block hiện tại:", currentBlock);
 
     // Hàm để xử lý từng sự kiện
     async function processEvent(event) {
-        const eventId = `${event.transactionHash}-${event.logIndex}`;
+        const eventId = `${event.transactionHash}`;
+       // Theo dõi các sự kiện đã xử lý để tránh trùng lặp
+       const processedEvents = new Set();
         if (processedEvents.has(eventId)) return;
-
+        
         processedEvents.add(eventId);
         console.log("Phát hiện sự kiện Transfer mới:", event);
 
@@ -115,6 +115,7 @@ async function startEventListener() {
         try {
             console.log(`Xử lý mint token cho người nhận ${recipient}`);
             await handleMint(recipient, amount, nonce);
+            
             console.log(`Hoàn tất xử lý sự kiện cho nonce: ${nonce}`);
         } catch (error) {
             console.error("Lỗi khi xử lý sự kiện:", error.message);
@@ -129,21 +130,28 @@ async function startEventListener() {
     // Vòng lặp chính để lấy và xử lý sự kiện tuần tự
     while (true) {
         try {
+            
             // Lấy danh sách sự kiện từ block hiện tại đến block mới nhất
             const events = await BridgeBscContract.getPastEvents('Transfer', {
                 fromBlock: currentBlock,
                 toBlock: 'latest'
             });
+              // Sắp xếp các sự kiện theo nonce (từ thấp đến cao)
+              const sortedEvents = events.sort((a, b) => {
+                return a.returnValues.nonce - b.returnValues.nonce;
+            });
+           
 
             // Xử lý từng sự kiện tuần tự
-            for (const event of events) {
-                await processEvent(event);
+            for (const event of sortedEvents) {
+                await processEvent(event);  // Xử lý từng sự kiện tuần tự
             }
 
             // Cập nhật block hiện tại sau khi xử lý xong tất cả sự kiện
             currentBlock = await web3Bsc.eth.getBlockNumber();
         } catch (error) {
             console.error("Lỗi khi kiểm tra sự kiện:", error.message);
+            setTimeout(startEventListener, 15000);
         }
 
         // Đợi 15 giây trước khi kiểm tra sự kiện tiếp theo
@@ -158,7 +166,7 @@ async function maintainConnection() {
     } catch (error) {
         console.error('Lỗi kết nối:', error.message);
         console.log('Thử kết nối lại sau 5 giây...');
-        setTimeout(maintainConnection, 15000);
+        setTimeout(startEventListener, 15000);
     }
 }
 

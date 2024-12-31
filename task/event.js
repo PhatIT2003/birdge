@@ -64,6 +64,18 @@ async function checkBalanceAndGas(fromAddress, gasLimit) {
     }
 }
 
+async function verifyNonceOnEtherscan(nonce) {
+    try {
+        // Check if the nonce has been processed using the read contract
+        const result = await BridgeEthContract.methods.processedNonces(nonce).call();
+        console.log(`Kiểm tra nonce ${nonce} trên Etherscan: ${result}`);
+        return result;
+    } catch (error) {
+        console.error(`Lỗi khi kiểm tra nonce trên Etherscan: ${error.message}`);
+        throw error;
+    }
+}
+
 async function handleMint(recipient, amount, nonce, retryCount = 0) {
     const MAX_RETRIES = 3;
     const DELAY_BETWEEN_TXS = 30000;
@@ -113,7 +125,14 @@ async function handleMint(recipient, amount, nonce, retryCount = 0) {
             console.log(`Đợi ${DELAY_BETWEEN_TXS/1000}s trước khi thử lại...`);
             return handleMint(recipient, amount, nonce, retryCount + 1);
         }
-        
+          // After MAX_RETRIES attempts, verify on Etherscan
+          console.log(`Đã thử ${MAX_RETRIES} lần không thành công. Kiểm tra trên Etherscan...`);
+          const isProcessed = await verifyNonceOnEtherscan(nonce);
+          
+          if (isProcessed) {
+              console.log(`Nonce ${nonce} đã được xử lý trước đó. Bỏ qua event này.`);
+              return null;
+          }
         throw error;
     }
 }
@@ -131,9 +150,17 @@ async function processEvent(event) {
     const { returnValues: { to: recipient, amount, nonce } } = event;
 
     try {
-        await handleMint(recipient, amount, nonce);
-        processedEvents.add(eventId);
-        console.log(`Đã xử lý thành công sự kiện ${eventId}`);
+        const isProcessed = await verifyNonceOnEtherscan(nonce);
+        if (isProcessed) {
+            console.log(`Nonce ${nonce} đã được xử lý trước đó. Bỏ qua event này.`);
+            processedEvents.add(eventId);
+            return;
+        }
+        const result = await handleMint(recipient, amount, nonce);
+        if (result !== null) {  // Only mark as processed if not skipped
+            processedEvents.add(eventId);
+            console.log(`Đã xử lý thành công sự kiện ${eventId}`);
+        }
     } catch (error) {
         console.error(`Lỗi xử lý sự kiện ${eventId}:`, error.message);
         throw error;

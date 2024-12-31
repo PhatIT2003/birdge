@@ -14,14 +14,23 @@ contract BridgeBase {
     uint public nonce;
     mapping(uint => bool) public processedNonces;
 
-    enum Step { Burn, Mint }
-    event Transfer(
+    enum StepBurn { Burn }
+    event Burn(
         address from,
         address to,
         uint amount,
         uint date,
         uint nonce,
-        Step indexed step
+        StepBurn indexed step
+    );
+    enum StepMint { Mint }
+      event Mint(
+        address from,
+        address to,
+        uint amount,
+        uint date,
+        uint nonce,
+        StepMint indexed step
     );
 
     constructor(address _token) {
@@ -31,13 +40,13 @@ contract BridgeBase {
 
     function burn(address to, uint amount) external {
         token.burn(msg.sender, amount);
-        emit Transfer(
+        emit Burn(
             msg.sender,
             to,
             amount,
             block.timestamp,
             nonce,
-            Step.Burn
+            StepBurn.Burn
         );
         nonce++;
     }
@@ -47,13 +56,13 @@ contract BridgeBase {
         require(!processedNonces[otherChainNonce], "transfer already processed");
         processedNonces[otherChainNonce] = true;
         token.mint(to, amount);
-        emit Transfer(
+        emit Mint(
             msg.sender,
             to,
             amount,
             block.timestamp,
             otherChainNonce,
-            Step.Mint
+            StepMint.Mint
         );
     }
 }

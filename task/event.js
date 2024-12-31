@@ -3,8 +3,8 @@ const Web3 = require('web3');
 const BridgeABI = require('./ABI/bridgeABI.json');
 
 let web3Bsc, web3Eth, BridgeBscContract, BridgeEthContract;
-const BridgeBscAddress = "0x487B028ecbdE12739EC57094E97f3f97E4e3FfE1";
-const BridgeEthAddress = "0x9d5a22502BE1922a16d168A062A875212f994d12";
+const BridgeBscAddress = "0x42C9233Ca89a051Ea63d1b24F66F5E437d595bF6";
+const BridgeEthAddress = "0xb279FF68C10A7e7836e01bF78b7a4f656cA3DA88";
 const privateKey = process.env.PRIVATE_KEY;
 const fromAddress = "0xdc2436650c1Ab0767aB0eDc1267a219F54cf7147";
 
@@ -156,7 +156,7 @@ async function processEvent(event) {
             processedEvents.add(eventId);
             return;
         }
-        const result = await handleMint(recipient, amount, nonce);
+         const result = await handleMint(recipient, amount, nonce);
         if (result !== null) {  // Only mark as processed if not skipped
             processedEvents.add(eventId);
             console.log(`Đã xử lý thành công sự kiện ${eventId}`);
@@ -190,9 +190,10 @@ async function startEventListener() {
             if (currentBlock > lastProcessedBlock) {
                 console.log(`Quét các block từ ${lastProcessedBlock} đến ${currentBlock}`);
                 
-                const events = await BridgeBscContract.getPastEvents('Transfer', {
+                const events = await BridgeBscContract.getPastEvents('Burn', {
                     fromBlock: lastProcessedBlock + 1,
                     toBlock: currentBlock
+                    
                 });
                 // console.log(events);
                 const sortedEvents = events.sort((a, b) => {

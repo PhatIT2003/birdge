@@ -1,15 +1,15 @@
 const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-const TokenTBC = "0x06AA72A1C349f6F679b8739B5EF516Ad2D56d71d"
+const TokenTBC = "0x81E7698c2E9444339E563ED69a1A67bAe552eC9e"
 const TokenModule = buildModule("TokenModule", (m) => {
-  const BridgeEth = m.contract("BridgeEth", [TokenTBC]);
+  const Bridge = m.contract("Bridge", [TokenTBC]);
 
-    return { BridgeEth };
+    return { Bridge };
 });
-
 module.exports = TokenModule;
 
-// TokenTBC - 0x06AA72A1C349f6F679b8739B5EF516Ad2D56d71d
+// bridge_Eth - 0xb279FF68C10A7e7836e01bF78b7a4f656cA3DA88
+// TokenTBC -  0x81E7698c2E9444339E563ED69a1A67bAe552eC9e
 
 // const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 

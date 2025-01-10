@@ -3,8 +3,8 @@ const Web3 = require('web3');
 const BridgeABI = require('./ABI/bridgeABI.json');
 
 let web3Bsc, web3Eth, BridgeBscContract, BridgeEthContract;
-const BridgeBscAddress = "0x42C9233Ca89a051Ea63d1b24F66F5E437d595bF6";
-const BridgeEthAddress = "0xb279FF68C10A7e7836e01bF78b7a4f656cA3DA88";
+const BridgeBscAddress = "0xd21d67a79fe7fB26194AB9a0974f3bc78936415F";
+const BridgeEthAddress = "0x49D60F222D6856F01c468540c96dF3305117D486";
 const privateKey = process.env.PRIVATE_KEY;
 const fromAddress = "0xdc2436650c1Ab0767aB0eDc1267a219F54cf7147";
 
